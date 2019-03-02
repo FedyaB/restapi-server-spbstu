@@ -8,7 +8,7 @@ const constants = require('./common/constants');
 const utils = require('./common/utils');
 const employeesRouter = require('./resources/employees/router');
 
-utils.fillParameters(dev, defaultProperties);
+utils.fillParameters(dev, defaultProperties, false);
 
 const indexRouter = new express.Router();
 indexRouter.get('/', (req, res, _) => res.json({}));
@@ -21,7 +21,7 @@ index.use(constants.routes.employees, employeesRouter);
 
 index.use((req, res, next) => next(createError(constants.httpCodes.notFound)));
 
-index.use((err, req, res, _) => res.status(constants.httpCodes.notFound).json(utils.createErrorBody(err)));
+index.use((err, req, res, _) => res.status(err.status).json(utils.createErrorBody(err)));
 
 index.set('port', dev.port);
 const server = http.createServer(index);
