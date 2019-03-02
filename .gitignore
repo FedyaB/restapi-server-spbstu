@@ -1,0 +1,11 @@
+# IDEA files
+.editorconfig
+.idea/
+# Dependencies
+node_modules/
+# TMP files
+.*
+*~*
+# Databases
+*database.json
+*db.json
