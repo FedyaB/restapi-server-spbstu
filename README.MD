@@ -1,16 +1,16 @@
 # REST API
 St. Petersburg Polytechnic University, 2019.
 ## Setup
-#####1. Install NodeJS with Node Package Manager (npm). 
+##### 1. Install NodeJS with Node Package Manager (npm). 
 Version 11.10.1 is used during the development. You may download it from there: [NodeJS](https://nodejs.org) 
-#####2. Download the repository 
-#####3. Install dependencies
+##### 2. Download the repository 
+##### 3. Install dependencies
 Run `npm install` in the command shell from the project directory
-#####4. (Optional) Edit config
+##### 4. (Optional) Edit config
 Check the `./config/dev` options
-#####5. Run the server
+##### 5. Run the server
 Run `npm start`  from the project directory
-#####6. Access the server
+##### 6. Access the server
 By default it is [127.0.0.1:3000](127.0.0.1:3000/)  
 ## Routes
    * GET /employees[?page=...&filter=...]
