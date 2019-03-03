@@ -18,7 +18,7 @@ utils.fillParameters(dev, defaultProperties, false);
 
 // Set index page routing
 const indexRouter = new express.Router();
-indexRouter.get('/', (req, res, _) => res.json({})); // TODO Unused parameters
+indexRouter.get('/', (req, res) => res.json({}));
 
 // Initialize express server
 const index = express();

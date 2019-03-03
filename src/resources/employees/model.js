@@ -67,12 +67,12 @@ module.exports = {
 		};
 	},
 	/**
-	 * Modify an object fields as to be normalized.
+	 * Modify an object names fields as to be normalized.
 	 * A.e. modify a name: tEd -> Ted
 	 * @param {object} entry A object to be normalized
 	 * @returns {*} A modified object
 	 */
-	normalizeEntry(entry) {
+	normalizeNames(entry) {
 		entry.name = service.toInnerNameRepresentation(entry.name);
 		entry.surname = service.toInnerNameRepresentation(entry.surname);
 		return entry;

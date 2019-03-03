@@ -11,7 +11,33 @@ const service = require('./service');
 
 const router = new express.Router();
 
-// TODO Refactor functions
+/**
+ * Get normalized key from a query and check for existence of an employee
+ * @param {object} req A request object
+ * @returns {*} Normalized key ('key' property) or error ('error' property) object
+ */
+function getNormalizedKeyAndCheckExistence(req) {
+	// Create a key object from a query
+	const key = model.keyFromQuery(req.params.fullName);
+	if (key === undefined) {
+		return {
+			error: constants.httpCodes.badRequest
+		};
+	}
+
+	const normalizedKey = model.normalizeNames(key);
+
+	// If such an employee is not present then 404
+	if (!mapper.exists(normalizedKey)) {
+		return {
+			error: constants.httpCodes.notFound
+		};
+	}
+
+	return {
+		key: normalizedKey
+	};
+}
 
 /**
  * GET /employees[?page=...&filter=...]
@@ -38,7 +64,7 @@ router.get('/', (req, res, next) => {
 	// If a filter is passed then try to assign it, otherwise use a default one
 	if (req.query.filter) {
 		if (service.validateFilter(req.query.filter)) {
-			filter = req.query.filter;
+			filter = service.toInnerNameRepresentation(req.query.filter);
 		} else {
 			next(createError(constants.httpCodes.badRequest));
 			return;
@@ -65,8 +91,10 @@ router.get('/:fullName', (req, res, next) => {
 		return;
 	}
 
+	const normalizedKey = model.normalizeNames(key);
+
 	// Get an employee info
-	const found = mapper.get(key);
+	const found = mapper.get(normalizedKey);
 	if (found === undefined) {
 		next(createError(constants.httpCodes.notFound));
 	} else {
@@ -84,7 +112,8 @@ router.get('/:fullName', (req, res, next) => {
  */
 router.post('/', (req, res, next) => {
 	if (model.validateEntry(req.body)) {
-		if (mapper.create(req.body)) {
+		const normalizedBody = model.normalizeNames(req.body);
+		if (mapper.create(normalizedBody)) {
 			res.status(constants.httpCodes.created).json({});
 		} else {
 			res.status(constants.httpCodes.ok).json({});
@@ -105,20 +134,14 @@ router.post('/', (req, res, next) => {
  */
 router.put('/:fullName', (req, res, next) => {
 	// Create a key object from a query
-	const key = model.keyFromQuery(req.params.fullName);
-	if (key === undefined) {
-		next(createError(constants.httpCodes.badRequest));
-		return;
-	}
-
-	// If such an employee is not present then 404
-	if (!mapper.exists(key)) {
-		next(createError(constants.httpCodes.notFound));
+	const result = getNormalizedKeyAndCheckExistence(req);
+	if (result.error) {
+		next(createError(result.error));
 		return;
 	}
 
 	// Append (or overwrite) the object properties with key ones
-	utils.fillParameters(req.body, key, true);
+	utils.fillParameters(req.body, result.key, true);
 
 	if (model.validateEntry(req.body)) {
 		if (mapper.modify(req.body)) {
@@ -141,19 +164,13 @@ router.put('/:fullName', (req, res, next) => {
  */
 router.delete('/:fullName', (req, res, next) => {
 	// Create a key object from a query
-	const key = model.keyFromQuery(req.params.fullName);
-	if (key === undefined) {
-		next(createError(constants.httpCodes.badRequest));
+	const result = getNormalizedKeyAndCheckExistence(req);
+	if (result.error) {
+		next(createError(result.error));
 		return;
 	}
 
-	// If such an employee is not present then 404
-	if (!mapper.exists(key)) {
-		next(createError(constants.httpCodes.notFound));
-		return;
-	}
-
-	mapper.delete(key);
+	mapper.delete(result.key);
 	res.status(constants.httpCodes.ok).json({});
 });
 

@@ -4,6 +4,14 @@ const utils = require('../../common/utils');
 const constants = require('../../common/constants');
 const model = require('./model');
 
+/**
+ * Get employees table from the database
+ * @returns {*} LowDB chain object after employees table access
+ */
+function getTable() {
+	return utils.getDatabase().get(constants.tables.employees);
+}
+
 module.exports = {
 	/**
 	 * Get multiple employees profiles in a salary descending order.
@@ -13,12 +21,11 @@ module.exports = {
 	 * @returns {*[]} An array of employees
 	 */
 	getMultiple(page, filter) {
-		let table = utils.getDatabase()
-			.get(constants.tables.employees)
+		let table = getTable()
 			.orderBy('salary', 'desc');
 
 		if (filter) {
-			table = table.filter(u => u.name === filter || u.surname === filter); // TODO Check case insensitivity
+			table = table.filter(u => u.name === filter || u.surname === filter);
 		}
 
 		const value = table.value();
@@ -31,9 +38,7 @@ module.exports = {
 	 * @returns {model.Employee} An employee object
 	 */
 	get(key) {
-		const db = utils.getDatabase();
-		const normalizedKey = model.normalizeEntry(key);
-		const found = db.get(constants.tables.employees).find(normalizedKey);
+		const found = getTable().find(key);
 		return found.value();
 	},
 	/**
@@ -42,11 +47,9 @@ module.exports = {
 	 * @returns {boolean} A new employee entry was created
 	 */
 	create(entry) {
-		const db = utils.getDatabase();
-		const normalizedEntry = model.normalizeEntry(entry);
-		const found = db.get(constants.tables.employees).find(model.keyFromEntry(normalizedEntry));
+		const found = getTable().find(model.keyFromEntry(entry));
 		if (found.value() === undefined) {
-			db.get(constants.tables.employees).push(normalizedEntry).write();
+			getTable().push(entry).write();
 			return true;
 		}
 
@@ -58,14 +61,12 @@ module.exports = {
 	 * @returns {boolean} An employee was found and modified
 	 */
 	modify(entry) {
-		const db = utils.getDatabase();
-		const normalizedEntry = model.normalizeEntry(entry);
-		const found = db.get(constants.tables.employees).find(model.keyFromEntry(normalizedEntry));
+		const found = getTable().find(model.keyFromEntry(entry));
 		if (found.value() === undefined) {
 			return false;
 		}
 
-		found.assign(normalizedEntry).write();
+		found.assign(entry).write();
 		return true;
 	},
 	/**
@@ -74,9 +75,7 @@ module.exports = {
 	 * @returns {boolean} The deletion succeeded
 	 */
 	delete(key) {
-		const db = utils.getDatabase();
-		const normalizedKey = model.normalizeEntry(key);
-		db.get(constants.tables.employees).remove(normalizedKey).write();
+		getTable().remove(key).write();
 		return true;
 	},
 	/**
@@ -85,9 +84,7 @@ module.exports = {
 	 * @returns {boolean} An employee exists in the database
 	 */
 	exists(key) {
-		const db = utils.getDatabase();
-		const normalizedKey = model.normalizeEntry(key);
-		const found = db.get(constants.tables.employees).find(normalizedKey);
+		const found = getTable().find(key);
 		return found.value() !== undefined;
 	}
 };
