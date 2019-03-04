@@ -21,7 +21,7 @@ By default it is [127.0.0.1:3000](127.0.0.1:3000/)
      * Get an employee info by it's surname and name
      * *Returns*: JSON
      * *Return codes*: 200 - OK; 404 - An employee with such surname and name is not found; 400 - An query is not a valid key representation
-   * POST /employees/surname-name
+   * POST /employees/
       * Create a new employee. Pass an object in a body
       * *Returns*: JSON
       * *Return codes*: 201 - Created; 200 - An object was not created; 400 - Passed object is invalid
