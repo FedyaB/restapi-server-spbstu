@@ -8,6 +8,7 @@ module.exports = {
 	 * @constructor
 	 */
 	Employee(entry) {
+		this.id = entry.id;
 		this.name = entry.name;
 		this.surname = entry.surname;
 		this.position = entry.position;
@@ -17,37 +18,40 @@ module.exports = {
 	/**
 	 * Check if a object is an Employee (duck typing)
 	 * @param {object} entry An object to be checked
+	 * @param {boolean} keyNecessary A key part of a model is necessary
 	 * @returns {boolean} An object has an employee's properties
 	 */
-	isEmployee(entry) {
+	isEmployee(entry, keyNecessary) {
 		return 'name' in entry &&
 		'surname' in entry &&
 		'birthday' in entry &&
 		'salary' in entry &&
-		'position' in entry;
+		'position' in entry &&
+		(!keyNecessary || 'id' in entry);
 	},
 	/**
 	 * Validate an object to be an employee (with restrictions for properties values)
 	 * @param {object} entry An object to be checked
-	 * @returns {*|boolean} An object passes the restrictions for an Employee object
+	 * @param {boolean} keyNecessary A key part of a model is necessary
+	 * @returns {boolean} An object passes the restrictions for an Employee object
 	 */
-	validateEntry(entry) {
-		return this.isEmployee(entry) &&
+	validateEntry(entry, keyNecessary) {
+		return this.isEmployee(entry, keyNecessary) &&
 			validator.validateName(entry.name) &&
 			validator.validateName(entry.surname) &&
 			validator.validateBirthday(entry.birthday) &&
 			validator.validateSalary(entry.salary) &&
-			validator.validatePosition(entry.position);
+			validator.validatePosition(entry.position) &&
+			(!keyNecessary || validator.validateID(entry.id));
 	},
 	/**
 	 * Create a key from an object
 	 * @param {object} entry An arbitrary object
-	 * @returns {{surname: (*|string), name: *}} Key object
+	 * @returns {object} Key object
 	 */
 	keyFromEntry(entry) {
 		return {
-			name: entry.name,
-			surname: entry.surname
+			id: entry.id
 		};
 	},
 	/**
@@ -56,14 +60,12 @@ module.exports = {
 	 * @returns {*} A key object (or undefined if failed)
 	 */
 	keyFromQuery(query) {
-		if (!validator.validateFullName(query)) {
+		if (!validator.validateIDString(query)) {
 			return undefined;
 		}
 
-		const parts = query.split('-');
 		return {
-			surname: parts[0],
-			name: parts[1]
+			id: parseInt(query, 10)
 		};
 	},
 	/**

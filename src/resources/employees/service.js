@@ -15,24 +15,22 @@ const model = require('./model');
  */
 function getNormalizedKeyAndCheckExistence(req) {
 	// Create a key object from a query
-	const key = model.keyFromQuery(req.params.fullName);
+	const key = model.keyFromQuery(req.params.id);
 	if (key === undefined) {
 		return {
 			error: constants.httpCodes.badRequest
 		};
 	}
 
-	const normalizedKey = model.normalizeNames(key);
-
 	// If such an employee is not present then 404
-	if (!repository.exists(normalizedKey)) {
+	if (!repository.exists(key)) {
 		return {
 			error: constants.httpCodes.notFound
 		};
 	}
 
 	return {
-		key: normalizedKey
+		key
 	};
 }
 
@@ -78,16 +76,14 @@ module.exports = {
 	 */
 	getEmployee(req, res, next) {
 		// Create a key from a query
-		const key = model.keyFromQuery(req.params.fullName);
+		const key = model.keyFromQuery(req.params.id);
 		if (key === undefined) {
 			next(createError(constants.httpCodes.badRequest));
 			return;
 		}
 
-		const normalizedKey = model.normalizeNames(key);
-
 		// Get an employee info
-		const found = repository.get(normalizedKey);
+		const found = repository.get(key);
 		if (found === undefined) {
 			next(createError(constants.httpCodes.notFound));
 		} else {
@@ -101,8 +97,9 @@ module.exports = {
 	 * @param {function} next Next handler
 	 */
 	createEmployee(req, res, next) {
-		if (model.validateEntry(req.body)) {
+		if (model.validateEntry(req.body, false)) {
 			const normalizedBody = model.normalizeNames(req.body);
+			normalizedBody.id = repository.createID();
 			if (repository.create(normalizedBody)) {
 				res.status(constants.httpCodes.created).json({});
 			} else {
@@ -129,7 +126,8 @@ module.exports = {
 		// Append (or overwrite) the object properties with key ones
 		_.assign(req.body, result.key);
 
-		if (model.validateEntry(req.body)) {
+		if (model.validateEntry(req.body, true)) {
+			req.body = model.normalizeNames(req.body);
 			if (repository.modify(req.body)) {
 				res.status(constants.httpCodes.ok).json({});
 			} else {

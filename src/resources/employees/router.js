@@ -16,17 +16,17 @@ const router = new express.Router();
 router.get('/', service.getMultipleEmployees);
 
 /**
- * GET /employees/surname-name
- * Get an employee info by it's surname and name
+ * GET /employees/id
+ * Get an employee info by it's id
  * Returns: JSON
  * Return codes: 200 - OK
- * 				 404 - An employee with such surname and name is not found
+ * 				 404 - An employee with such an id was not found
  * 				 400 - An query is not a valid key representation
  */
-router.get('/:fullName', service.getEmployee);
+router.get('/:id', service.getEmployee);
 
 /**
- * POST /employees/surname-name
+ * POST /employees
  * Create a new employee. Pass an object in a body
  * Returns: JSON
  * Return codes: 201 - Created
@@ -36,24 +36,24 @@ router.get('/:fullName', service.getEmployee);
 router.post('/', service.createEmployee);
 
 /**
- * PUT /employees/surname-name
+ * PUT /employees/id
  * Modify an existing employee. Pass an object in a body.
  * The passed object may not include key properties but has to include all of the others
  * Returns: JSON
  * Return codes: 200 - OK
  * 				 400 - The passed query or the object in a body are not valid
- * 				 404 - An employee with such surname and name is not found
+ * 				 404 - An employee with such an id
  */
-router.put('/:fullName', service.updateEmployee);
+router.put('/:id', service.updateEmployee);
 
 /**
- * DELETE /employees/surname-name
+ * DELETE /employees/id
  * Delete an employee.
  * Returns: JSON
  * Return codes: 200 - OK
  * 				 400 - The passed query is invalid
- * 				 404 - An employee with such surname and name is not found
+ * 				 404 - An employee with such an id
  */
-router.delete('/:fullName', service.deleteEmployee);
+router.delete('/:id', service.deleteEmployee);
 
 module.exports = router;

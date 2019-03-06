@@ -33,7 +33,7 @@ module.exports = {
 		return array.slice(constants.pageEntries * (page - 1), constants.pageEntries * page);
 	},
 	/**
-	 * Get an employee by its' key
+	 * Get an employee by it's key
 	 * @param {object} key A key object
 	 * @returns {model.Employee} An employee object
 	 */
@@ -86,5 +86,14 @@ module.exports = {
 	exists(key) {
 		const found = getTable().find(key);
 		return found.value() !== undefined;
+	},
+	/**
+	 * Create a new ID (not present in the current DB)
+	 * @returns {number} A new ID for an object
+	 */
+	createID() {
+		const getMax = (accumulator, currentValue) => accumulator.id < currentValue.id ? currentValue : accumulator;
+		const highestID = getTable().reduce(getMax).value().id;
+		return highestID === undefined ? 1 : (highestID + 1);
 	}
 };

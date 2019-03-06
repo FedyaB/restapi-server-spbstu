@@ -7,6 +7,14 @@ const constants = require('../../common/constants');
 
 module.exports = {
 	/**
+	 * Check if a parameter is a correct id
+	 * @param {*} id An ID
+	 * @returns {boolean} An ID is valid
+	 */
+	validateID(id) {
+		return utils.isIntegerNonNegativeNumber(id) && id !== 0;
+	},
+	/**
 	 * Check if a parameter is a valid name
 	 * @param {*} name A name
 	 * @returns {boolean} A name is valid
@@ -28,9 +36,7 @@ module.exports = {
 	 * @returns {boolean} A position is valid
 	 */
 	validatePosition(position) {
-		return _.some(constants.positions, function (element) {
-			return element === position;
-		});
+		return _.some(constants.positions, element => element === position);
 	},
 	/**
 	 * Check if salary is valid
@@ -41,13 +47,12 @@ module.exports = {
 		return utils.isIntegerNonNegativeNumber(salary);
 	},
 	/**
-	 * Check if a string is representing a full name (surname-name)
-	 * @param {string} fullName A string
-	 * @returns {boolean} The name is valid
+	 * Check if a string is representing an ID
+	 * @param {string} idString A string
+	 * @returns {boolean} The ID is valid
 	 */
-	validateFullName(fullName) {
-		const parts = fullName.split('-');
-		return typeof fullName === 'string' && parts.length === 2 && parts[0].length !== 0 && parts[1].length !== 0;
+	validateIDString(idString) {
+		return typeof idString === 'string' && utils.isStringPositiveNumber(idString);
 	},
 	/**
 	 * Make an unified name representation
