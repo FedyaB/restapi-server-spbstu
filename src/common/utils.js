@@ -1,10 +1,16 @@
+const _ = require('lodash');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
+const defaultProperties = require('../../config/default');
 const dev = require('../../config/dev');
 const constants = require('../common/constants');
 
+// Fill not specified parameters in dev from default parameters
+const properties = defaultProperties;
+_.assign(properties, dev);
+
 // Create the database instance once
-const adapter = new FileSync(dev.database);
+const adapter = new FileSync(properties.database);
 const db = low(adapter);
 const defaultDatabaseLayout = {};
 defaultDatabaseLayout[constants.tables.employees] = [];
@@ -12,20 +18,11 @@ db.defaults(defaultDatabaseLayout).write();
 
 module.exports = {
 	/**
-	 * Copy object properties from the destination to the source.
-	 * If overwrite flag is set then copy all those properties.
-	 * If overwrite flag is not set then copy only properties that are
-	 * not in the destination object
-	 * @param {object} destination Destination object
-	 * @param {object} source Source object
-	 * @param {boolean} overwrite Overwrite flag (true / false)
+	 * Get current config parameters
+	 * @returns {object} Config parameters
 	 */
-	fillParameters(destination, source, overwrite) {
-		for (const property in source) {
-			if (overwrite || !Object.prototype.hasOwnProperty.call(destination, property)) {
-				destination[property] = source[property];
-			}
-		}
+	getConfigParameters() {
+		return properties;
 	},
 	/**
 	 * Create a custom error object from the http-errors error object

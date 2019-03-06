@@ -1,5 +1,5 @@
 // A model representation for employees resource
-const service = require('./service');
+const validator = require('./validator');
 
 module.exports = {
 	/**
@@ -33,11 +33,11 @@ module.exports = {
 	 */
 	validateEntry(entry) {
 		return this.isEmployee(entry) &&
-			service.validateName(entry.name) &&
-			service.validateName(entry.surname) &&
-			service.validateBirthday(entry.birthday) &&
-			service.validateSalary(entry.salary) &&
-			service.validatePosition(entry.position);
+			validator.validateName(entry.name) &&
+			validator.validateName(entry.surname) &&
+			validator.validateBirthday(entry.birthday) &&
+			validator.validateSalary(entry.salary) &&
+			validator.validatePosition(entry.position);
 	},
 	/**
 	 * Create a key from an object
@@ -56,7 +56,7 @@ module.exports = {
 	 * @returns {*} A key object (or undefined if failed)
 	 */
 	keyFromQuery(query) {
-		if (!service.validateFullName(query)) {
+		if (!validator.validateFullName(query)) {
 			return undefined;
 		}
 
@@ -73,8 +73,8 @@ module.exports = {
 	 * @returns {*} A modified object
 	 */
 	normalizeNames(entry) {
-		entry.name = service.toInnerNameRepresentation(entry.name);
-		entry.surname = service.toInnerNameRepresentation(entry.surname);
+		entry.name = validator.toInnerNameRepresentation(entry.name);
+		entry.surname = validator.toInnerNameRepresentation(entry.surname);
 		return entry;
 	}
 };

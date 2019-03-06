@@ -1,78 +1,159 @@
 // A service module for employees resource
 
-const utils = require('../../common/utils');
+const _ = require('lodash');
+const createError = require('http-errors');
+
 const constants = require('../../common/constants');
+const validator = require('./validator');
+const repository = require('./repository');
+const model = require('./model');
+
+/**
+ * Get normalized key from a query and check for existence of an employee
+ * @param {object} req A request object
+ * @returns {*} Normalized key ('key' property) or error ('error' property) object
+ */
+function getNormalizedKeyAndCheckExistence(req) {
+	// Create a key object from a query
+	const key = model.keyFromQuery(req.params.fullName);
+	if (key === undefined) {
+		return {
+			error: constants.httpCodes.badRequest
+		};
+	}
+
+	const normalizedKey = model.normalizeNames(key);
+
+	// If such an employee is not present then 404
+	if (!repository.exists(normalizedKey)) {
+		return {
+			error: constants.httpCodes.notFound
+		};
+	}
+
+	return {
+		key: normalizedKey
+	};
+}
 
 module.exports = {
 	/**
-	 * Check if a parameter is a valid name
-	 * @param {*} name A name
-	 * @returns {boolean} A name is valid
+	 * Get multiple employees with filtering and pagination (pass in the query)
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
 	 */
-	validateName(name) {
-		return typeof name === 'string' && name.length > 0 && name.length <= 100;
-	},
-	/**
-	 * Check if a string is a valid birthday date
-	 * @param {string} birthday A birthday
-	 * @returns {*|boolean} A birthday is valid
-	 */
-	validateBirthday(birthday) {
-		return utils.isValidDate(birthday);
-	},
-	/**
-	 * Check if a position is valid
-	 * @param {*} position A position
-	 * @returns {boolean} A position is valid
-	 */
-	validatePosition(position) {
-		for (let i = 0; i < constants.positions.length; ++i) {
-			if (position === constants.positions[i]) {
-				return true;
+	getMultipleEmployees(req, res, next) {
+		let page = 1;
+		let filter = null;
+
+		// If a page is passed then try to assign it, otherwise use a default value
+		if (req.query.page) {
+			if (validator.validatePage(req.query.page)) {
+				page = req.query.page;
+			} else {
+				next(createError(constants.httpCodes.badRequest));
+				return;
 			}
 		}
 
-		return false;
+		// If a filter is passed then try to assign it, otherwise use a default one
+		if (req.query.filter) {
+			if (validator.validateFilter(req.query.filter)) {
+				filter = validator.toInnerNameRepresentation(req.query.filter);
+			} else {
+				next(createError(constants.httpCodes.badRequest));
+				return;
+			}
+		}
+
+		// Get a JSON with employees
+		res.status(constants.httpCodes.ok).json(repository.getMultiple(page, filter));
 	},
 	/**
-	 * Check if salary is valid
-	 * @param {*} salary Salary
-	 * @returns {*|*|boolean} Salary is valid
+	 * Get an employee by it's key
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
 	 */
-	validateSalary(salary) {
-		return utils.isIntegerNonNegativeNumber(salary);
+	getEmployee(req, res, next) {
+		// Create a key from a query
+		const key = model.keyFromQuery(req.params.fullName);
+		if (key === undefined) {
+			next(createError(constants.httpCodes.badRequest));
+			return;
+		}
+
+		const normalizedKey = model.normalizeNames(key);
+
+		// Get an employee info
+		const found = repository.get(normalizedKey);
+		if (found === undefined) {
+			next(createError(constants.httpCodes.notFound));
+		} else {
+			res.status(constants.httpCodes.ok).json(found);
+		}
 	},
 	/**
-	 * Check if a string is representing a full name (surname-name)
-	 * @param {string} fullName A string
-	 * @returns {boolean} The name is valid
+	 * Create an employee
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
 	 */
-	validateFullName(fullName) {
-		const parts = fullName.split('-');
-		return typeof fullName === 'string' && parts.length === 2 && parts[0].length !== 0 && parts[1].length !== 0;
+	createEmployee(req, res, next) {
+		if (model.validateEntry(req.body)) {
+			const normalizedBody = model.normalizeNames(req.body);
+			if (repository.create(normalizedBody)) {
+				res.status(constants.httpCodes.created).json({});
+			} else {
+				res.status(constants.httpCodes.ok).json({});
+			}
+		} else {
+			next(createError(constants.httpCodes.badRequest));
+		}
 	},
 	/**
-	 * Make an unified name representation
-	 * @param {string} str A string
-	 * @returns {string} The modified name
+	 * Update an employee
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
 	 */
-	toInnerNameRepresentation(str) {
-		return str[0].toUpperCase() + str.slice(1).toLowerCase();
+	updateEmployee(req, res, next) {
+		// Create a key object from a query
+		const result = getNormalizedKeyAndCheckExistence(req);
+		if (result.error) {
+			next(createError(result.error));
+			return;
+		}
+
+		// Append (or overwrite) the object properties with key ones
+		_.assign(req.body, result.key);
+
+		if (model.validateEntry(req.body)) {
+			if (repository.modify(req.body)) {
+				res.status(constants.httpCodes.ok).json({});
+			} else {
+				next(createError(constants.httpCodes.badRequest));
+			}
+		} else {
+			next(createError(constants.httpCodes.badRequest));
+		}
 	},
 	/**
-	 * Check if a parameter is a valid page
-	 * @param {int} page A page
-	 * @returns {*|boolean} A page is valid
+	 * Delete an employee
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
 	 */
-	validatePage(page) {
-		return utils.isStringPositiveNumber(page);
-	},
-	/**
-	 * Check if a parameter is a valid filter
-	 * @param {*} filter A filter
-	 * @returns {*|boolean} A filter is valid
-	 */
-	validateFilter(filter) {
-		return this.validateName(filter);
+	deleteEmployee(req, res, next) {
+		// Create a key object from a query
+		const result = getNormalizedKeyAndCheckExistence(req);
+		if (result.error) {
+			next(createError(result.error));
+			return;
+		}
+
+		repository.delete(result.key);
+		res.status(constants.httpCodes.ok).json({});
 	}
 };

@@ -7,14 +7,12 @@ const http = require('http');
 const express = require('express');
 const createError = require('http-errors');
 
-const dev = require('../config/dev');
-const defaultProperties = require('../config/default');
 const constants = require('./common/constants');
 const utils = require('./common/utils');
 const employeesRouter = require('./resources/employees/router');
 
 // Fill not specified parameters in dev from default parameters
-utils.fillParameters(dev, defaultProperties, false);
+const properties = utils.getConfigParameters();
 
 // Set index page routing
 const indexRouter = new express.Router();
@@ -34,6 +32,6 @@ index.use((req, res, next) => next(createError(constants.httpCodes.notFound)));
 index.use((err, req, res, _) => res.status(err.status).json(utils.createErrorBody(err)));
 
 // Create a server
-index.set('port', dev.port);
+index.set('port', properties.port);
 const server = http.createServer(index);
-server.listen(dev.port);
+server.listen(properties.port);
