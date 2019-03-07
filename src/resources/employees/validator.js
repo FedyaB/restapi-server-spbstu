@@ -77,5 +77,13 @@ module.exports = {
 	 */
 	validateFilter(filter) {
 		return this.validateName(filter);
+	},
+	/**
+	 * Parse a page from a stirng
+	 * @param {string} s A string
+	 * @returns {number} The parsed page
+	 */
+	parsePage(s) {
+		return parseInt(s, 10);
 	}
 };

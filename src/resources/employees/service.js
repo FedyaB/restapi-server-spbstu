@@ -7,6 +7,7 @@ const constants = require('../../common/constants');
 const validator = require('./validator');
 const repository = require('./repository');
 const model = require('./model');
+const mapper = require('./mapper');
 
 /**
  * Get normalized key from a query and check for existence of an employee
@@ -48,7 +49,7 @@ module.exports = {
 		// If a page is passed then try to assign it, otherwise use a default value
 		if (req.query.page) {
 			if (validator.validatePage(req.query.page)) {
-				page = req.query.page;
+				page = validator.parsePage(req.query.page);
 			} else {
 				next(createError(constants.httpCodes.badRequest));
 				return;
@@ -66,7 +67,7 @@ module.exports = {
 		}
 
 		// Get a JSON with employees
-		res.status(constants.httpCodes.ok).json(repository.getMultiple(page, filter));
+		res.status(constants.httpCodes.ok).json(mapper.wrapEmployees(repository.getMultiple(page, filter), page, filter));
 	},
 	/**
 	 * Get an employee by it's key
@@ -87,7 +88,7 @@ module.exports = {
 		if (found === undefined) {
 			next(createError(constants.httpCodes.notFound));
 		} else {
-			res.status(constants.httpCodes.ok).json(found);
+			res.status(constants.httpCodes.ok).json(mapper.wrapSingleEmployee(found, key));
 		}
 	},
 	/**
@@ -101,9 +102,9 @@ module.exports = {
 			const normalizedBody = model.normalizeNames(req.body);
 			normalizedBody.id = repository.createID();
 			if (repository.create(normalizedBody)) {
-				res.status(constants.httpCodes.created).json({});
+				res.status(constants.httpCodes.created).json(mapper.wrapSingleEmployeeResponse(normalizedBody));
 			} else {
-				res.status(constants.httpCodes.ok).json({});
+				next(createError(constants.httpCodes.internalError)); // Unreachable situation
 			}
 		} else {
 			next(createError(constants.httpCodes.badRequest));
@@ -129,7 +130,7 @@ module.exports = {
 		if (model.validateEntry(req.body, true)) {
 			req.body = model.normalizeNames(req.body);
 			if (repository.modify(req.body)) {
-				res.status(constants.httpCodes.ok).json({});
+				res.status(constants.httpCodes.ok).json(mapper.wrapSingleEmployeeResponse(result.key));
 			} else {
 				next(createError(constants.httpCodes.badRequest));
 			}
@@ -152,6 +153,6 @@ module.exports = {
 		}
 
 		repository.delete(result.key);
-		res.status(constants.httpCodes.ok).json({});
+		res.status(constants.httpCodes.ok).json(mapper.wrapEmployeeDeletion(result.key));
 	}
 };

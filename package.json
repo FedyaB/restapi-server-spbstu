@@ -1,12 +1,13 @@
 {
   "name": "restapi-spbstu-barinov",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "start": "node ./src/index.js"
   },
   "dependencies": {
     "express": "~4.16.0",
+    "halson": "^3.0.0",
     "http-errors": "~1.6.2",
     "joi": "^14.3.1",
     "lodash": "^4.17.11",
