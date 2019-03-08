@@ -48,7 +48,7 @@ module.exports = {
 
 		// If a page is passed then try to assign it, otherwise use a default value
 		if (req.query.page) {
-			if (validator.validatePage(req.query.page)) {
+			if (validator.validatePageParameter(req.query.page)) {
 				page = validator.parsePage(req.query.page);
 			} else {
 				next(createError(constants.httpCodes.badRequest));
@@ -58,7 +58,7 @@ module.exports = {
 
 		// If a filter is passed then try to assign it, otherwise use a default one
 		if (req.query.filter) {
-			if (validator.validateFilter(req.query.filter)) {
+			if (validator.validateFilterParameter(req.query.filter)) {
 				filter = validator.toInnerNameRepresentation(req.query.filter);
 			} else {
 				next(createError(constants.httpCodes.badRequest));
@@ -98,7 +98,7 @@ module.exports = {
 	 * @param {function} next Next handler
 	 */
 	createEmployee(req, res, next) {
-		if (model.validateEntry(req.body, false)) {
+		if (model.validateDataPart(req.body)) {
 			const normalizedBody = model.normalizeNames(req.body);
 			normalizedBody.id = repository.createID();
 			if (repository.create(normalizedBody)) {
@@ -127,7 +127,7 @@ module.exports = {
 		// Append (or overwrite) the object properties with key ones
 		_.assign(req.body, result.key);
 
-		if (model.validateEntry(req.body, true)) {
+		if (model.validateKeyPart(req.body) && model.validateDataPart(req.body)) {
 			req.body = model.normalizeNames(req.body);
 			if (repository.modify(req.body)) {
 				res.status(constants.httpCodes.ok).json(mapper.wrapSingleEmployeeResponse(result.key));

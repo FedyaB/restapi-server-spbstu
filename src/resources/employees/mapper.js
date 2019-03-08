@@ -15,7 +15,8 @@ module.exports = {
 	wrapEmployees(object, currentPage, currentFilter) {
 		return halson(object)
 			.addLink('self', constants.routes.employees)
-			.addLink('next', constants.routes.employees + '?page=' + (currentPage + 1) + (currentFilter ? currentFilter : ''))
+			.addLink('next', constants.routes.employees + '?page=' + (currentPage + 1) +
+				(currentFilter ? ('&filter=' + currentFilter) : ''))
 			.addLink('filter', {
 				href: constants.routes.employees + '{?filter}',
 				template: true

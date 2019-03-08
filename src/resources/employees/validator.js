@@ -1,58 +1,80 @@
 // A validator for employees resource
 
-const _ = require('lodash');
+const BaseJoi = require('joi');
+const DateExtension = require('joi-date-extensions');
 
-const utils = require('../../common/utils');
 const constants = require('../../common/constants');
+
+const Joi = BaseJoi.extend(DateExtension);
+
+const keySchema = Joi.object().keys({
+	id: Joi.number().integer().min(1).required()
+}).unknown(true);
+
+const nameRegExp = /^[a-zA-Zа-яА-ЯёЁ]{1,100}$/;
+const dataSchema = Joi.object().keys({
+	name: Joi.string().regex(nameRegExp).required(),
+	surname: Joi.string().regex(nameRegExp).required(),
+	position: Joi.string().valid(constants.positions).required(),
+	birthday: Joi.date().format('DD/MM/YYYY').required(),
+	salary: Joi.number().integer().min(1).required()
+}).unknown(true);
+
+const paramsSchema = Joi.object().keys({
+	page: Joi.number().integer().min(1),
+	filter: Joi.string().regex(nameRegExp)
+});
 
 module.exports = {
 	/**
-	 * Check if a parameter is a correct id
-	 * @param {*} id An ID
-	 * @returns {boolean} An ID is valid
+	 * Validate an entry with the key schema
+	 * @param {object} entry An entry
+	 * @returns {boolean} An entry is valid
 	 */
-	validateID(id) {
-		return utils.isIntegerNonNegativeNumber(id) && id !== 0;
+	validateKeySchema(entry) {
+		return Joi.validate(entry, keySchema).error === null;
 	},
 	/**
-	 * Check if a parameter is a valid name
-	 * @param {*} name A name
-	 * @returns {boolean} A name is valid
+	 * Validate an entry with the data schema
+	 * @param {object} entry An entry
+	 * @returns {boolean} An entry is valid
 	 */
-	validateName(name) {
-		return typeof name === 'string' && name.length > 0 && name.length <= 100;
+	validateDataSchema(entry) {
+		return Joi.validate(entry, dataSchema).error === null;
 	},
 	/**
-	 * Check if a string is a valid birthday date
-	 * @param {string} birthday A birthday
-	 * @returns {*|boolean} A birthday is valid
+	 * Check if a string is representing a key
+	 * @param {string} s A string
+	 * @returns {boolean} The key is valid
 	 */
-	validateBirthday(birthday) {
-		return utils.isValidDate(birthday);
+	validateKeyString(s) {
+		const id = parseInt(s, 10);
+		if (isNaN(id)) {
+			return false;
+		}
+
+		return this.validateKeySchema({id});
 	},
 	/**
-	 * Check if a position is valid
-	 * @param {*} position A position
-	 * @returns {boolean} A position is valid
+	 * Check if a parameter is a valid page
+	 * @param {int} page A page
+	 * @returns {*|boolean} A page is valid
 	 */
-	validatePosition(position) {
-		return _.some(constants.positions, element => element === position);
+	validatePageParameter(page) {
+		const parsedPage = parseInt(page, 10);
+		if (isNaN(parsedPage)) {
+			return false;
+		}
+
+		return Joi.validate({page: parsedPage}, paramsSchema);
 	},
 	/**
-	 * Check if salary is valid
-	 * @param {*} salary Salary
-	 * @returns {*|*|boolean} Salary is valid
+	 * Check if a parameter is a valid filter
+	 * @param {*} filter A filter
+	 * @returns {*|boolean} A filter is valid
 	 */
-	validateSalary(salary) {
-		return utils.isIntegerNonNegativeNumber(salary);
-	},
-	/**
-	 * Check if a string is representing an ID
-	 * @param {string} idString A string
-	 * @returns {boolean} The ID is valid
-	 */
-	validateIDString(idString) {
-		return typeof idString === 'string' && utils.isStringPositiveNumber(idString);
+	validateFilterParameter(filter) {
+		return Joi.validate({filter}, paramsSchema);
 	},
 	/**
 	 * Make an unified name representation
@@ -63,23 +85,7 @@ module.exports = {
 		return str[0].toUpperCase() + str.slice(1).toLowerCase();
 	},
 	/**
-	 * Check if a parameter is a valid page
-	 * @param {int} page A page
-	 * @returns {*|boolean} A page is valid
-	 */
-	validatePage(page) {
-		return utils.isStringPositiveNumber(page);
-	},
-	/**
-	 * Check if a parameter is a valid filter
-	 * @param {*} filter A filter
-	 * @returns {*|boolean} A filter is valid
-	 */
-	validateFilter(filter) {
-		return this.validateName(filter);
-	},
-	/**
-	 * Parse a page from a stirng
+	 * Parse a page from a string
 	 * @param {string} s A string
 	 * @returns {number} The parsed page
 	 */
