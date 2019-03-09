@@ -8,6 +8,7 @@ const validator = require('./validator');
 const repository = require('./repository');
 const model = require('./model');
 const mapper = require('./mapper');
+const authenticator = require('./authenticator');
 
 /**
  * Get normalized key from a query and check for existence of an employee
@@ -36,6 +37,31 @@ function getNormalizedKeyAndCheckExistence(req) {
 }
 
 module.exports = {
+	/**
+	 * Log in as an employee
+	 * @param {object} req Request
+	 * @param {object} res Result
+	 * @param {function} next Next handler
+	 * @returns {*} An authentication result
+	 */
+	login(req, res, next) {
+		if (model.validateKeyPart(req.body) && model.validateCredentialsPart(req.body)) {
+			return authenticator.authenticate((err, passportUser, _) => {
+				if (err) {
+					next(createError(constants.httpCodes.accessDenied));
+					return;
+				}
+
+				if (passportUser) {
+					res.status(constants.httpCodes.ok).json(authenticator.toAuthJSON(model.keyFromEntry(passportUser)));
+				} else {
+					next(createError(constants.httpCodes.accessDenied));
+				}
+			}, req, res, next);
+		}
+
+		next(createError(constants.httpCodes.badRequest));
+	},
 	/**
 	 * Get multiple employees with filtering and pagination (pass in the query)
 	 * @param {object} req Request
@@ -98,9 +124,12 @@ module.exports = {
 	 * @param {function} next Next handler
 	 */
 	createEmployee(req, res, next) {
-		if (model.validateDataPart(req.body)) {
+		if (model.validateDataPart(req.body) && model.validateCredentialsPart(req.body)) {
 			const normalizedBody = model.normalizeNames(req.body);
 			normalizedBody.id = repository.createID();
+			authenticator.setPassword(normalizedBody, req.body.password);
+			delete normalizedBody.password;
+
 			if (repository.create(normalizedBody)) {
 				res.status(constants.httpCodes.created).json(mapper.wrapSingleEmployeeResponse(normalizedBody));
 			} else {
@@ -121,6 +150,12 @@ module.exports = {
 		const result = getNormalizedKeyAndCheckExistence(req);
 		if (result.error) {
 			next(createError(result.error));
+			return;
+		}
+
+		// Check if a the user has permissions
+		if (!authenticator.isSameUser(req, result.key)) {
+			next(createError(constants.httpCodes.accessDenied));
 			return;
 		}
 
@@ -149,6 +184,12 @@ module.exports = {
 		const result = getNormalizedKeyAndCheckExistence(req);
 		if (result.error) {
 			next(createError(result.error));
+			return;
+		}
+
+		// Check if a the user has permissions
+		if (!authenticator.isSameUser(req, result.key)) {
+			next(createError(constants.httpCodes.accessDenied));
 			return;
 		}
 

@@ -1,9 +1,24 @@
 // A router for employees resource
 
 const express = require('express');
+const constants = require('../../common/constants');
 const service = require('./service');
+const authenticator = require('./authenticator');
 
 const router = new express.Router();
+const auth = authenticator.getAuthConfigurations();
+
+/**
+ * POST /employees/login
+ * Login as an employee with an id and a password
+ * Pass the object consisting of an id and a password in the body
+ * Returns: JSON (with a token)
+ * Return codes: 200 - OK
+ * 				 400 - A problem with a query representation or the body
+ * 				 403 - Invalid credentials pair
+ *
+ */
+router.post(constants.routes.login, auth.optional, service.login);
 
 /**
  * GET /employees[?page=...&filter=...]
@@ -13,7 +28,7 @@ const router = new express.Router();
  * 				 400 - The passed page or filter query parameters are invalid
  */
 
-router.get('/', service.getMultipleEmployees);
+router.get('/', auth.optional, service.getMultipleEmployees);
 
 /**
  * GET /employees/id
@@ -23,7 +38,7 @@ router.get('/', service.getMultipleEmployees);
  * 				 404 - An employee with such an id was not found
  * 				 400 - An query is not a valid key representation
  */
-router.get('/:id', service.getEmployee);
+router.get('/:id', auth.optional, service.getEmployee);
 
 /**
  * POST /employees
@@ -33,27 +48,31 @@ router.get('/:id', service.getEmployee);
  *				 200 - An object was not created
  *				 400 - Passed object is invalid
  */
-router.post('/', service.createEmployee);
+router.post('/', auth.optional, service.createEmployee);
 
 /**
  * PUT /employees/id
  * Modify an existing employee. Pass an object in a body.
  * The passed object may not include key properties but has to include all of the others
+ * An employee needs to be logged in to perform an operation
  * Returns: JSON
  * Return codes: 200 - OK
  * 				 400 - The passed query or the object in a body are not valid
  * 				 404 - An employee with such an id
+ * 				 403 - Access denied (a user either not logged in or tries to modify a different user)
  */
-router.put('/:id', service.updateEmployee);
+router.put('/:id', auth.required, service.updateEmployee);
 
 /**
  * DELETE /employees/id
  * Delete an employee.
+ * An employee needs to be logged in to perform an operation
  * Returns: JSON
  * Return codes: 200 - OK
  * 				 400 - The passed query is invalid
  * 				 404 - An employee with such an id
+ * 				 403 - Access denied (a user either not logged in or tries to delete a different user)
  */
-router.delete('/:id', service.deleteEmployee);
+router.delete('/:id', auth.required, service.deleteEmployee);
 
 module.exports = router;

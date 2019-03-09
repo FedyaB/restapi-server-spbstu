@@ -8,6 +8,7 @@ module.exports = {
 	 * @constructor
 	 */
 	Employee(entry) {
+		this.password = entry.password;
 		this.id = entry.id;
 		this.name = entry.name;
 		this.surname = entry.surname;
@@ -30,6 +31,14 @@ module.exports = {
 	 */
 	validateDataPart(entry) {
 		return validator.validateDataSchema(entry);
+	},
+	/**
+	 * Validate credentials part of an entry
+	 * @param {object} entry An entry
+	 * @returns {boolean} Credentials part is valid
+	 */
+	validateCredentialsPart(entry) {
+		return validator.validateCredentialsSchema(entry);
 	},
 	/**
 	 * Create a key from an object

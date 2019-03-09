@@ -25,15 +25,24 @@ By default it is [127.0.0.1:3000](127.0.0.1:3000/)
       * Create a new employee. Pass an object in a body. ID is created automatically.
       * *Returns*: JSON
       * *Return codes*: 201 - Created; 200 - An object was not created; 400 - Passed object is invalid
+   * POST /employees/login
+      * Login as an employee with an id and a password
+      * Pass the object consisting of an id and a password in the body
+      * *Returns*: JSON (with a token)
+      * *Return codes*: 200 - OK; 400 - A problem with a query representation or the body; 403 - Invalid credentials pair
    * PUT /employees/id
       * Modify an existing employee. Pass an object in a body.
       * The passed object may not include an id (ignored if passed in the body) but has to include all of the others
+      * An employee needs to be logged in to perform an operation
       * *Returns*: JSON
-      * *Return codes*: 200 - OK; 400 - The passed query or the object in a body are not valid; 404 - An employee with such an id is not found
+      * *Return codes*: 200 - OK; 400 - The passed query or the object in a body are not valid; 404 - An employee with such an id is not found;
+      403 - Access denied (a user either not logged in or tries to modify a different user)
    * DELETE /employees/id
      * Delete an employee.
-     * Returns: JSON
-     * Return codes: 200 - OK; 400 - The passed query is invalid; 404 - An employee with such an id is not found
+     * An employee needs to be logged in to perform an operation
+     * *Returns*: JSON
+     * *Return codes*: 200 - OK; 400 - The passed query is invalid; 404 - An employee with such an id is not found;
+     403 - Access denied (a user either not logged in or tries to delete a different user)
 ## Config
 A config file you may want to edit is *dev.js*. You are free to override any options from *default.js* in this file.  
 Current supported options are:

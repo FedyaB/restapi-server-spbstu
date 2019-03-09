@@ -20,6 +20,10 @@ const dataSchema = Joi.object().keys({
 	salary: Joi.number().integer().min(1).required()
 }).unknown(true);
 
+const credentialsSchema = Joi.object().keys({
+	password: Joi.string().min(4).max(20).required()
+}).unknown(true);
+
 const paramsSchema = Joi.object().keys({
 	page: Joi.number().integer().min(1),
 	filter: Joi.string().regex(nameRegExp)
@@ -41,6 +45,14 @@ module.exports = {
 	 */
 	validateDataSchema(entry) {
 		return Joi.validate(entry, dataSchema).error === null;
+	},
+	/**
+	 * Validate an entry with the credentials schema
+	 * @param {object} entry An entry
+	 * @returns {boolean} An entry is valid
+	 */
+	validateCredentialsSchema(entry) {
+		return Joi.validate(entry, credentialsSchema).error === null;
 	},
 	/**
 	 * Check if a string is representing a key

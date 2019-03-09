@@ -4,7 +4,8 @@ module.exports = {
 	// Resources routes
 	routes: {
 		index: '/',
-		employees: '/employees'
+		employees: '/employees',
+		login: '/login'
 	},
 	// Available HTTP response codes
 	httpCodes: {
@@ -12,7 +13,8 @@ module.exports = {
 		ok: 200,
 		badRequest: 400,
 		created: 201,
-		internalError: 500
+		internalError: 500,
+		accessDenied: 403
 	},
 	// Database tables' names
 	tables: {
@@ -25,5 +27,12 @@ module.exports = {
 		'Senior Software Engineer',
 		'Lead Software Engineer'
 	],
-	pageEntries: 25 // Entries on page (pagination)
+	pageEntries: 25, // Entries on page (pagination),
+	auth: {
+		saltBytes: 16,
+		keyBytes: 512,
+		algorithm: 'sha512',
+		iterations: 10000,
+		jwtExpirationSeconds: 300
+	}
 };

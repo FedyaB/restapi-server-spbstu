@@ -1,18 +1,22 @@
 {
   "name": "restapi-spbstu-barinov",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "start": "node ./src/index.js"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.4",
     "express": "~4.16.0",
+    "express-jwt": "^5.3.1",
     "halson": "^3.0.0",
     "http-errors": "~1.6.2",
     "joi": "^14.3.1",
     "joi-date-extensions": "^1.2.0",
+    "jsonwebtoken": "^8.5.0",
     "lodash": "^4.17.11",
     "lowdb": "^1.0.0",
-    "xo": "^0.24.0"
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0"
   }
 }
