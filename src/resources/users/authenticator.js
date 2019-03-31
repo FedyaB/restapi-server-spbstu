@@ -8,7 +8,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 
 const constants = require('../../common/constants');
-const repository = require('./repository');
+const repository = require('../employees/repository');
 const model = require('./model');
 
 /**
@@ -17,13 +17,7 @@ const model = require('./model');
  * @returns {string} A Bearer token from a header
  */
 function getTokenFromHeaders(req) {
-	const {headers: {authorization}} = req;
-
-	if (authorization && authorization.split(' ')[0] === 'Bearer') {
-		return authorization.split(' ')[1];
-	}
-
-	return null;
+	return req.token;
 }
 
 module.exports = {

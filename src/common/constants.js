@@ -5,7 +5,7 @@ module.exports = {
 	routes: {
 		index: '/',
 		employees: '/employees',
-		login: '/login'
+		users: '/users'
 	},
 	// Available HTTP response codes
 	httpCodes: {

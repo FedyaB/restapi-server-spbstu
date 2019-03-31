@@ -20,14 +20,14 @@ const dataSchema = Joi.object().keys({
 	salary: Joi.number().integer().min(1).required()
 }).unknown(true);
 
-const credentialsSchema = Joi.object().keys({
-	password: Joi.string().min(4).max(20).required()
-}).unknown(true);
-
 const paramsSchema = Joi.object().keys({
 	page: Joi.number().integer().min(1),
 	filter: Joi.string().regex(nameRegExp)
 });
+
+const credentialsSchema = Joi.object().keys({
+	password: Joi.string().min(4).max(20).required()
+}).unknown(true);
 
 module.exports = {
 	/**
