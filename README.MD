@@ -25,8 +25,8 @@ By default it is [127.0.0.1:3000](127.0.0.1:3000/)
       * Create a new employee. Pass an object in a body. ID is created automatically.
       * *Returns*: JSON
       * *Return codes*: 201 - Created; 200 - An object was not created; 400 - Passed object is invalid
-   * POST /employees/login
-      * Login as an employee with an id and a password
+   * POST /users/login
+      * Login as an user with an id and a password
       * Pass the object consisting of an id and a password in the body
       * *Returns*: JSON (with a token)
       * *Return codes*: 200 - OK; 400 - A problem with a query representation or the body; 403 - Invalid credentials pair
